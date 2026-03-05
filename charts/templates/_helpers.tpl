@@ -224,9 +224,9 @@ Returns broker.type if explicitly set, otherwise infers from broker config objec
 {{- define "hyperfleet-adapter.brokerType" -}}
 {{- if .Values.broker.type -}}
 {{- .Values.broker.type -}}
-{{- else if .Values.broker.googlepubsub -}}
+{{- else if .Values.broker.googlepubsub.projectId -}}
 googlepubsub
-{{- else if .Values.broker.rabbitmq -}}
+{{- else if or .Values.broker.rabbitmq.enabled .Values.broker.external.enabled -}}
 rabbitmq
 {{- end -}}
 {{- end }}

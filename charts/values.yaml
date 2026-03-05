@@ -75,15 +75,32 @@ broker:
     # Set to true for development/testing; use false in production with pre-provisioned resources
     createTopicIfMissing: false
     createSubscriptionIfMissing: false
-  # option3: for rabbitmq
-  #rabbitmq:
-  # url: ""
-  # queue: ""
-  # exchange: ""
-  # exchangeType: "topic"
-  # routingKey: ""
+  # option3: In-cluster RabbitMQ (development mode)
+  rabbitmq:
+    enabled: false
+    url: ""
+    queue: ""
+    exchange: ""
+    exchangeType: "topic"
+    routingKey: ""
 
+  # External broker (Amazon MQ) with Pod Identity (production mode)
+  external:
+    enabled: false
+    # Use AWS Pod Identity for authentication
+    podidentity: false
+    # Broker connection settings
+    queue: ""
+    exchange: ""
+    exchangeType: "topic"
+    routingKey: ""
 
+# AWS configuration for Pod Identity
+aws:
+  region: ""
+
+# Namespace override (defaults to Release.Namespace)
+namespace: ""
 
 ## Kubernetes configuration section
 ## ================================
