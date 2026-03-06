@@ -84,6 +84,11 @@ spec:
           ports:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+          {{- if and (not .Values.broker.rabbitmq.enabled) .Values.broker.external.enabled .Values.broker.external.podidentity }}
+          envFrom:
+            - secretRef:
+                name: {{ include "hyperfleet-adapter.fullname" . }}-mq-secret
+          {{- end }}
           env:
             {{- with .Values.env }}
               {{- toYaml . | nindent 12 }}
@@ -103,11 +108,19 @@ spec:
             - name: HYPERFLEET_BROKER_TOPIC
               value: {{ .Values.broker.googlepubsub.topic | quote }}
             {{- end }}
-            {{- if eq $brokerType "rabbitmq" }}
+            {{- if and (eq $brokerType "rabbitmq") .Values.broker.rabbitmq.enabled }}
             - name: BROKER_URL
               value: {{ .Values.broker.rabbitmq.url | quote }}
             - name: BROKER_QUEUE
               value: {{ .Values.broker.rabbitmq.queue | quote }}
+            {{- end }}
+            {{- if and (not .Values.broker.rabbitmq.enabled) .Values.broker.external.enabled }}
+            - name: BROKER_QUEUE
+              value: {{ .Values.broker.external.queue | quote }}
+            {{- if not .Values.broker.external.podidentity }}
+            - name: BROKER_RABBITMQ_URL
+              value: {{ .Values.broker.external.url | quote }}
+            {{- end }}
             {{- end }}
           {{- if .Values.livenessProbe.enabled }}
           livenessProbe:
@@ -135,6 +148,11 @@ spec:
               mountPath: /etc/broker/broker.yaml
               subPath: broker.yaml
               readOnly: true
+            {{- if and (not .Values.broker.rabbitmq.enabled) .Values.broker.external.enabled .Values.broker.external.podidentity }}
+            - name: mq-secrets-store
+              mountPath: {{ .Values.broker.external.secretMountPath | default "/mnt/secrets-store" }}
+              readOnly: true
+            {{- end }}
             {{- with .Values.extraVolumeMounts }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
@@ -157,6 +175,14 @@ spec:
             items:
               - key: broker.yaml
                 path: broker.yaml
+        {{- if and (not .Values.broker.rabbitmq.enabled) .Values.broker.external.enabled .Values.broker.external.podidentity }}
+        - name: mq-secrets-store
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: {{ .Values.broker.external.secretProviderClass | default (printf "%s-mq-secrets" (include "hyperfleet-adapter.fullname" .)) }}
+        {{- end }}
         {{- with .Values.extraVolumes }}
         {{- toYaml . | nindent 8 }}
         {{- end }}

@@ -226,7 +226,7 @@ Returns broker.type if explicitly set, otherwise infers from broker config objec
 {{- .Values.broker.type -}}
 {{- else if .Values.broker.googlepubsub -}}
 googlepubsub
-{{- else if .Values.broker.rabbitmq -}}
+{{- else if or .Values.broker.rabbitmq.enabled .Values.broker.external.enabled -}}
 rabbitmq
 {{- end -}}
 {{- end }}
