@@ -270,6 +270,11 @@ broker:
 
   rabbitmq:
     enabled: false
+    url: "amqp://hyperfleet:hyperfleet-dev-password@rabbitmq.rabbitmq.svc.cluster.local:5672/"
+    queue: "hyperfleet-clusters-landing-zone"
+    exchange: "hyperfleet-clusters"
+    exchangeType: "topic"
+    routingKey: "#"
 
   # option3: for external broker (e.g. Amazon MQ)
   external:
