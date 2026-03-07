@@ -95,6 +95,19 @@ The `ConfigMap` will be:
 | `broker.googlepubsub.subscriptionId` | Subscription ID override (HYPERFLEET_BROKER_SUBSCRIPTION_ID) | `""` |
 | `broker.googlepubsub.topic` | Topic name override (HYPERFLEET_BROKER_TOPIC) | `""` |
 | `broker.yaml` | Broker YAML config content | `""` |
+| `broker.rabbitmq.url` | RabbitMQ connection URL (leave empty when using broker.external + AWS Secrets Manager) | `""` |
+| `broker.rabbitmq.queue` | RabbitMQ queue name | `""` |
+| `broker.rabbitmq.exchange` | RabbitMQ exchange | `""` |
+| `broker.rabbitmq.exchangeType` | RabbitMQ exchange type | `"topic"` |
+| `broker.rabbitmq.routingKey` | RabbitMQ routing key | `""` |
+| `broker.rabbitmq.podidentity.enabled` | Enable pod identity (IRSA) and optional Secrets Store CSI | `true` |
+| `broker.rabbitmq.podidentity.secretproviderclass` | Create and use a SecretProviderClass for AWS Secrets Manager | `true` |
+| `broker.rabbitmq.podidentity.useTLS` | Use TLS for RabbitMQ (AMQPS) | `true` |
+| `broker.external.secretProviderClass` | SecretProviderClass name (default: `<fullname>-mq-secrets`) | `""` |
+| `broker.external.aws.region` | AWS region for Secrets Manager | `"us-east-1"` |
+| `broker.external.aws.secretName` | AWS Secrets Manager secret name; JSON keys: `url`, `username`, `password`, `host`, `port` | `""` |
+
+When using RabbitMQ with AWS MQ and pod identity, set `broker.rabbitmq.url` to empty and configure `broker.external.aws` (and optionally `broker.external.secretProviderClass`). The chart creates a SecretProviderClass with `usePodIdentity: true` and `secretObjects` that sync the AWS secret into a Kubernetes Secret named `<fullname>-mq-secret` with keys `BROKER_URL`, `BROKER_USERNAME`, `BROKER_PASSWORD`, `BROKER_HOST`, `BROKER_PORT`. The deployment uses `envFrom` to load that Secret. Ensure the cluster has the [Secrets Store CSI driver](https://secrets-store-csi-driver.sigs.k8s.io/) and the [AWS provider](https://github.com/aws/secrets-store-csi-driver-provider-aws) installed, and that the service account has IRSA permissions to read the secret.
 
 When `broker.yaml` is set:
 

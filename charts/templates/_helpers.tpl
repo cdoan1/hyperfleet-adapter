@@ -115,6 +115,25 @@ true
 {{- end }}
 {{- end }}
 
+{{/*
+Name of the SecretProviderClass for broker external secrets (AWS Secrets Manager).
+Used when broker type is rabbitmq and broker.external is configured.
+*/}}
+{{- define "hyperfleet-adapter.brokerSecretProviderClassName" -}}
+{{- if .Values.broker.external.secretProviderClass }}
+{{- .Values.broker.external.secretProviderClass }}
+{{- else }}
+{{- printf "%s-mq-secrets" (include "hyperfleet-adapter.fullname" .) }}
+{{- end }}
+{{- end }}
+
+{{/*
+Name of the Kubernetes Secret synced from AWS Secrets Manager (secretObjects).
+*/}}
+{{- define "hyperfleet-adapter.brokerExternalSecretName" -}}
+{{- printf "%s-mq-secret" (include "hyperfleet-adapter.fullname" .) }}
+{{- end }}
+
 {{- define "hyperfleet-adapter.helmValidateAdapterIsConfigured" -}}
 {{- if .Values.adapterConfig.create -}}
   {{- $hasYaml := not (empty .Values.adapterConfig.yaml) -}}

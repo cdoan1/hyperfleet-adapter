@@ -39,7 +39,7 @@ data:
       subscriber:
         parallelism: 1
   {{- else if eq $brokerType "rabbitmq" }}
-  # RabbitMQ Configuration
+  # RabbitMQ Configuration (url may be empty when using broker.external + secretObjects synced Secret)
   broker.yaml: |
     broker:
       type: rabbitmq
@@ -49,6 +49,9 @@ data:
         exchange: {{ .Values.broker.rabbitmq.exchange | quote }}
         routing_key: {{ .Values.broker.rabbitmq.routingKey | quote }}
         exchange_type: {{ .Values.broker.rabbitmq.exchangeType | default "topic" | quote }}
+        {{- if .Values.broker.rabbitmq.podidentity.useTLS }}
+        use_tls: true
+        {{- end }}
   {{- end }}
   {{- end }}
 {{- end }}

@@ -104,11 +104,31 @@ spec:
               value: {{ .Values.broker.googlepubsub.topic | quote }}
             {{- end }}
             {{- if eq $brokerType "rabbitmq" }}
-            - name: BROKER_URL
-              value: {{ .Values.broker.rabbitmq.url | quote }}
+            {{- $mq := .Values.broker.rabbitmq }}
             - name: BROKER_QUEUE
-              value: {{ .Values.broker.rabbitmq.queue | quote }}
+              value: {{ $mq.queue | quote }}
+            # {{- if and (not $mq.url) $mq.podidentity.enabled $mq.podidentity.secretproviderclass .Values.broker.external.aws.secretName }}
+            - name: BROKER_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "hyperfleet-adapter.brokerExternalSecretName" . }}
+                  key: BROKER_URL
+            # {{- else }}
+            # - name: BROKER_URL
+            #   value: {{ $mq.url | quote }}
+            # {{- end }}
+            # {{- end }}
+          {{- $useBrokerExternalSecret := and (eq (include "hyperfleet-adapter.brokerType" .) "rabbitmq") .Values.broker.rabbitmq.podidentity.enabled .Values.broker.rabbitmq.podidentity.secretproviderclass .Values.broker.external.aws.secretName }}
+          {{- if or $useBrokerExternalSecret (not (empty .Values.envFrom)) }}
+          envFrom:
+            {{- if $useBrokerExternalSecret }}
+            - secretRef:
+                name: {{ include "hyperfleet-adapter.brokerExternalSecretName" . }}
             {{- end }}
+            {{- with .Values.envFrom }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- end }}
           {{- if .Values.livenessProbe.enabled }}
           livenessProbe:
             {{- include "hyperfleet-adapter.renderProbe" (dict "probe" .Values.livenessProbe "defaultPath" "/healthz" "defaultPort" "http") | nindent 12 }}
@@ -135,6 +155,11 @@ spec:
               mountPath: /etc/broker/broker.yaml
               subPath: broker.yaml
               readOnly: true
+            {{- if and (eq (include "hyperfleet-adapter.brokerType" .) "rabbitmq") .Values.broker.rabbitmq.podidentity.enabled .Values.broker.rabbitmq.podidentity.secretproviderclass .Values.broker.external.aws.secretName }}
+            - name: broker-secrets-store
+              mountPath: /mnt/secrets-store
+              readOnly: true
+            {{- end }}
             {{- with .Values.extraVolumeMounts }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
@@ -157,6 +182,14 @@ spec:
             items:
               - key: broker.yaml
                 path: broker.yaml
+        {{- if and (eq (include "hyperfleet-adapter.brokerType" .) "rabbitmq") .Values.broker.rabbitmq.podidentity.enabled .Values.broker.rabbitmq.podidentity.secretproviderclass .Values.broker.external.aws.secretName }}
+        - name: broker-secrets-store
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: {{ include "hyperfleet-adapter.brokerSecretProviderClassName" . | quote }}
+        {{- end }}
         {{- with .Values.extraVolumes }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
