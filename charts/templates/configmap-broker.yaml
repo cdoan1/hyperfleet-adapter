@@ -39,16 +39,24 @@ data:
       subscriber:
         parallelism: 1
   {{- else if eq $brokerType "rabbitmq" }}
-  # RabbitMQ Configuration
+  # RabbitMQ Configuration (in-cluster or external; URL may come from AWS Secrets Manager when broker.external.podidentity is true)
   broker.yaml: |
     broker:
       type: rabbitmq
       rabbitmq:
+        {{- if .Values.broker.rabbitmq.enabled }}
         url: {{ .Values.broker.rabbitmq.url | quote }}
         queue: {{ .Values.broker.rabbitmq.queue | quote }}
         exchange: {{ .Values.broker.rabbitmq.exchange | quote }}
         routing_key: {{ .Values.broker.rabbitmq.routingKey | quote }}
         exchange_type: {{ .Values.broker.rabbitmq.exchangeType | default "topic" | quote }}
+        {{- else }}
+        url: {{ .Values.broker.external.url | quote }}
+        queue: {{ .Values.broker.external.queue | quote }}
+        exchange: {{ .Values.broker.external.exchange | quote }}
+        routing_key: {{ .Values.broker.external.routingKey | quote }}
+        exchange_type: {{ .Values.broker.external.exchangeType | default "topic" | quote }}
+        {{- end }}
   {{- end }}
   {{- end }}
 {{- end }}
