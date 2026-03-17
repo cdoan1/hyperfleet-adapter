@@ -16,7 +16,7 @@ data:
 {{ toYaml .Values.adapterTaskConfig.yaml | nindent 4 }}
     {{- end }}
   {{- if .Values.manifestWork.yaml }}   
-  adapter-task-resource-manifestwork.yaml: |
+  manifestwork.yaml: |
     {{- if kindIs "string" .Values.manifestWork.yaml }}
 {{ .Values.manifestWork.yaml | nindent 4 }}
     {{- else }}
