@@ -15,6 +15,13 @@ data:
     {{- else }}
 {{ toYaml .Values.adapterTaskConfig.yaml | nindent 4 }}
     {{- end }}
+ {{- if .Values.manifestWork.yaml }}   
+  manifestwork.yaml: |
+    {{- if kindIs "string" .Values.manifestWork.yaml }}
+{{ .Values.manifestWork.yaml | nindent 4 }}
+    {{- else }}
+{{ toYaml .Values.manifestWork.yaml | nindent 4 }}
+    {{- end }}
   {{- else }}
     {{- range $key, $path := .Values.adapterTaskConfig.files }}
   {{ $key }}: |
