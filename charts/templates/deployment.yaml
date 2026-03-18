@@ -121,8 +121,7 @@ spec:
             - name: BROKER_RABBITMQ_URL
               value: {{ .Values.broker.external.url | quote }}
             {{- else }}
-            # Alias so adapter can use BROKER_URL (same value as BROKER_RABBITMQ_URL from AWS secret)
-            - name: BROKER_URL
+            - name: BROKER_RABBITMQ_URL
               valueFrom:
                 secretKeyRef:
                   name: {{ include "hyperfleet-adapter.fullname" . }}-mq-secret
